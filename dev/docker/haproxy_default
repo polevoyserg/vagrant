@@ -1,0 +1,39 @@
+global
+    log         127.0.0.1 local2
+    ca-base /etc/ssl/certs
+    crt-base /etc/ssl/private
+    chroot      /var/lib/haproxy
+    pidfile     /var/run/haproxy.pid
+    maxconn     4000
+    user        haproxy
+    group       haproxy
+    daemon
+    stats socket /var/lib/haproxy/stats
+    tune.ssl.default-dh-param 2048
+defaults
+    mode                    http
+    log                     global
+    option                  httplog
+    option                  dontlognull
+    option http-server-close
+    option forwardfor       except 127.0.0.0/8
+    option                  redispatch
+    retries                 3
+    timeout http-request    10s
+    timeout queue           1m
+    timeout connect         10s
+    timeout client          1m
+    timeout server          1m
+    timeout http-keep-alive 10s
+    timeout check           10s
+    maxconn                 5000
+
+
+frontend main
+  bind  *:8035
+default_backend             application-backend
+
+
+
+backend application-backend
+  server websrv1 127.0.0.1:8080 check cookie websrv1 weight 100
